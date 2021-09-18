@@ -101,7 +101,7 @@ const properties = [
   "MozTabSize",
 ];
 
-function getCaretCoordinates(element, position, options) {
+function getCaretCoordinates(element, position) {
   const isBrowser = typeof window !== "undefined";
   if (!isBrowser) {
     throw new Error(
@@ -196,6 +196,8 @@ let leftCoordinate = 0;
 
 let selectionIndex = 0;
 let suggestions = [];
+let activeElement = null;
+let language = null;
 
 const ul = document.createElement("ul");
 ul.classList.add("t-suggestions-box");
@@ -219,22 +221,72 @@ const reset = () => {
   renderSuggestionsList();
 };
 
-const handleSelection = () => {};
+const handleSelection = (index) => {};
 
 const handleBlur = () => {
   handleSelection(0);
 };
 
+const handleInput = async (event) => {
+  const value = event.target.value;
+  const caret = getInputSelection(event.target).end;
+  const caretPos = getCaretCoordinates(activeElement, caret);
+
+  // search for the last occurence of the space character from
+  // the cursor
+  const indexOfLastSpace =
+    value.lastIndexOf(" ", caret - 1) < value.lastIndexOf("\n", caret - 1)
+      ? value.lastIndexOf("\n", caret - 1)
+      : value.lastIndexOf(" ", caret - 1);
+
+  matchStart = indexOfLastSpace + 1;
+  matchEnd = caret - 1;
+
+  const currentWord = value.slice(indexOfLastSpace + 1, caret);
+
+  if (currentWord) {
+    const newSuggestions = await getTransliterateSuggestions(
+      currentWord,
+      language
+    );
+    suggestions = newSuggestions;
+    renderSuggestionsList();
+
+    const rect = activeElement.getBoundingClientRect();
+
+    const newTop =
+      window.scrollY + caretPos.top + rect.top + OPTION_LIST_Y_OFFSET;
+    const newLeft = window.scrollX + caretPos.left + rect.left;
+
+    topCoordinate = newTop;
+    leftCoordinate = newLeft;
+  } else {
+    reset();
+  }
+};
+
+const setActiveElementListener = (activeElement) => {
+  activeElement.addEventListener("input", handleInput);
+  activeElement.addEventListener("blur", () => {
+    setTimeout(() => {
+      reset();
+    }, 200);
+    activeElement.removeEventListener("input", handleInput);
+    activeElement.removeEventListener("blur", this);
+  });
+};
+
 function initialiseTransliteration() {
   // TODO find a way to renew event listener when language changes
-  chrome.storage.sync.get("language", ({ language }) => {
+  chrome.storage.sync.get("language", ({ language: selectedLanguage }) => {
+    language = selectedLanguage;
     document.addEventListener(
       "focusin",
       function () {
         // access to document.activeElement may throw an error
         // @see https://bugs.jquery.com/ticket/13393
         try {
-          let activeElement = document.activeElement;
+          activeElement = document.activeElement;
 
           if (!activeElement) {
             activeElement = document.querySelector(":focus");
@@ -248,44 +300,7 @@ function initialiseTransliteration() {
           // TODO: disable for type="password"
 
           // TODO remove listener on blur
-          activeElement.addEventListener("input", async (event) => {
-            const value = event.target.value;
-            const caret = getInputSelection(event.target).end;
-            const caretPos = getCaretCoordinates(activeElement, caret);
-
-            // search for the last occurence of the space character from
-            // the cursor
-            const indexOfLastSpace =
-              value.lastIndexOf(" ", caret - 1) <
-              value.lastIndexOf("\n", caret - 1)
-                ? value.lastIndexOf("\n", caret - 1)
-                : value.lastIndexOf(" ", caret - 1);
-
-            matchStart = indexOfLastSpace + 1;
-            matchEnd = caret - 1;
-
-            const currentWord = value.slice(indexOfLastSpace + 1, caret);
-
-            if (currentWord) {
-              const newSuggestions = await getTransliterateSuggestions(
-                currentWord,
-                language
-              );
-              suggestions = newSuggestions;
-              renderSuggestionsList();
-
-              const rect = activeElement.getBoundingClientRect();
-
-              const newTop =
-                window.scrollY + caretPos.top + rect.top + OPTION_LIST_Y_OFFSET;
-              const newLeft = window.scrollX + caretPos.left + rect.left;
-
-              topCoordinate = newTop;
-              leftCoordinate = newLeft;
-            } else {
-              reset();
-            }
-          });
+          setActiveElementListener(activeElement);
         } catch (error) {
           console.error("error while fetching focused element", error);
         }
