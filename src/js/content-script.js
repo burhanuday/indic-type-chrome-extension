@@ -185,6 +185,12 @@ function getCaretCoordinates(element, position) {
 const KEY_UP = 38;
 const KEY_DOWN = 40;
 const KEY_ESCAPE = 27;
+const KEY_RETURN = 13;
+const KEY_ENTER = 14;
+const KEY_TAB = 9;
+const KEY_SPACE = 32;
+
+const triggerKeys = [KEY_RETURN, KEY_TAB, KEY_ENTER, KEY_SPACE];
 
 const OPTION_LIST_Y_OFFSET = 20;
 const OPTION_LIST_MIN_WIDTH = 100;
@@ -198,6 +204,7 @@ let selectionIndex = 0;
 let suggestions = [];
 let activeElement = null;
 let language = null;
+let value = "";
 
 const ul = document.createElement("ul");
 ul.classList.add("t-suggestions-box");
@@ -211,7 +218,14 @@ const renderSuggestionsList = () => {
   ul.style.width = "auto";
   ul.style.display = suggestions.length ? "block" : "none";
 
-  ul.innerHTML = suggestions.map((option) => `<li>${option}</li>`).join("");
+  ul.innerHTML = suggestions
+    .map(
+      (option, index) =>
+        `<li class="${
+          selectionIndex === index ? "t-active-option" : ""
+        }">${option}</li>`
+    )
+    .join("");
 };
 
 // reset the component
@@ -221,7 +235,24 @@ const reset = () => {
   renderSuggestionsList();
 };
 
-const handleSelection = (index) => {};
+const handleSelection = (index) => {
+  const currentString = value;
+  // create a new string with the currently typed word
+  // replaced with the word in transliterated language
+  if (typeof currentString !== "string") return;
+  const newValue =
+    currentString.substring(0, matchStart) +
+    suggestions[index] +
+    " " +
+    currentString.substring(matchEnd + 1, currentString.length);
+
+  // set the position of the caret (cursor) one character after the
+  // the position of the new word
+  setCaretPosition(activeElement, matchStart + suggestions[index].length + 1);
+
+  activeElement.value = newValue;
+  reset();
+};
 
 const getLastWordFromText = (text, caret) => {
   // search for the last occurence of the space character from
@@ -234,11 +265,35 @@ const getLastWordFromText = (text, caret) => {
   matchStart = indexOfLastSpace + 1;
   matchEnd = caret - 1;
 
-  return value.slice(indexOfLastSpace + 1, caret);
+  return text.slice(indexOfLastSpace + 1, caret);
+};
+
+const handleKeyDown = (event) => {
+  const helperVisible = suggestions.length > 0;
+
+  if (helperVisible) {
+    if (triggerKeys.includes(event.keyCode)) {
+      handleSelection(selectionIndex);
+    } else {
+      switch (event.keyCode) {
+        case KEY_ESCAPE:
+          reset();
+          break;
+        case KEY_UP:
+          selectionIndex =
+            (suggestions.length + selectionIndex - 1) % suggestions.length;
+          break;
+        case KEY_DOWN:
+          selectionIndex = (selectionIndex + 1) % suggestions.length;
+          break;
+      }
+      renderSuggestionsList();
+    }
+  }
 };
 
 const handleInput = async (event) => {
-  const value = event.target.value;
+  value = event.target.value;
   const caret = getInputSelection(event.target).end;
   const caretPos = getCaretCoordinates(activeElement, caret);
 
@@ -267,11 +322,13 @@ const handleInput = async (event) => {
 
 const setActiveElementListener = (activeElement) => {
   activeElement.addEventListener("input", handleInput);
+  activeElement.addEventListener("keydown", handleKeyDown);
   activeElement.addEventListener("blur", () => {
     setTimeout(() => {
       reset();
     }, 50);
     activeElement.removeEventListener("input", handleInput);
+    activeElement.removeEventListener("keydown", handleKeyDown);
     activeElement.removeEventListener("blur", this);
   });
 };
