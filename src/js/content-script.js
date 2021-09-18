@@ -218,14 +218,27 @@ const renderSuggestionsList = () => {
   ul.style.width = "auto";
   ul.style.display = suggestions.length ? "block" : "none";
 
-  ul.innerHTML = suggestions
-    .map(
-      (option, index) =>
-        `<li class="${
-          selectionIndex === index ? "t-active-option" : ""
-        }">${option}</li>`
-    )
-    .join("");
+  ul.innerHTML = "";
+
+  suggestions.forEach((suggestion, index) => {
+    const li = document.createElement("li");
+    li.innerHTML = suggestion;
+    if (selectionIndex === index) {
+      li.classList.add("t-active-option");
+    } else {
+      li.classList.remove("t-active-option");
+    }
+    li.addEventListener("mouseenter", () => {
+      if (selectionIndex !== index) {
+        selectionIndex = index;
+        renderSuggestionsList();
+      }
+    });
+    li.addEventListener("click", () => {
+      handleSelection(index);
+    });
+    ul.append(li);
+  });
 };
 
 // reset the component
@@ -324,9 +337,6 @@ const setActiveElementListener = (activeElement) => {
   activeElement.addEventListener("input", handleInput);
   activeElement.addEventListener("keydown", handleKeyDown);
   activeElement.addEventListener("blur", () => {
-    setTimeout(() => {
-      reset();
-    }, 50);
     activeElement.removeEventListener("input", handleInput);
     activeElement.removeEventListener("keydown", handleKeyDown);
     activeElement.removeEventListener("blur", this);
@@ -334,6 +344,8 @@ const setActiveElementListener = (activeElement) => {
 };
 
 function initialiseTransliteration() {
+  renderSuggestionsList();
+
   // TODO find a way to renew event listener when language changes
   chrome.storage.sync.get("language", ({ language: selectedLanguage }) => {
     language = selectedLanguage;
