@@ -1,7 +1,7 @@
 const getTransliterateSuggestions = async (
   word,
   lang = "hi",
-  numOptions = 5,
+  numOptions = 4,
   showCurrentWordAsLastSuggestion = true
 ) => {
   const url = `https://inputtools.google.com/request?text=${word}&itc=${lang}-t-i0-und&num=${numOptions}&cp=0&cs=1&ie=utf-8&oe=utf-8&app=demopage`;
@@ -186,7 +186,7 @@ const KEY_UP = 38;
 const KEY_DOWN = 40;
 const KEY_ESCAPE = 27;
 
-const OPTION_LIST_Y_OFFSET = 10;
+const OPTION_LIST_Y_OFFSET = 20;
 const OPTION_LIST_MIN_WIDTH = 100;
 
 let matchStart = -1;
@@ -194,10 +194,10 @@ let matchEnd = -1;
 let topCoordinate = 0;
 let leftCoordinate = 0;
 
-let selection = 0;
-let options = ["hi", "hey", "hello"];
+let selectionIndex = 0;
+let suggestions = [];
 
-let ul = document.createElement("ul");
+const ul = document.createElement("ul");
 ul.classList.add("t-suggestions-box");
 
 document.body.append(ul);
@@ -207,14 +207,22 @@ const renderSuggestionsList = () => {
   ul.style.top = `${topCoordinate}px`;
   ul.style.position = "absolute";
   ul.style.width = "auto";
+  ul.style.display = suggestions.length ? "block" : "none";
 
-  ul.innerHTML = `${options.map((option) => `<li>${option}</li>`).join("")}`;
+  ul.innerHTML = suggestions.map((option) => `<li>${option}</li>`).join("");
 };
 
+// reset the component
 const reset = () => {
-  // reset the component
-  selection = 0;
-  options = [];
+  selectionIndex = 0;
+  suggestions = [];
+  renderSuggestionsList();
+};
+
+const handleSelection = () => {};
+
+const handleBlur = () => {
+  handleSelection(0);
 };
 
 function initialiseTransliteration() {
@@ -239,7 +247,8 @@ function initialiseTransliteration() {
 
           // TODO: disable for type="password"
 
-          activeElement.addEventListener("input", (event) => {
+          // TODO remove listener on blur
+          activeElement.addEventListener("input", async (event) => {
             const value = event.target.value;
             const caret = getInputSelection(event.target).end;
             const caretPos = getCaretCoordinates(activeElement, caret);
@@ -258,6 +267,11 @@ function initialiseTransliteration() {
             const currentWord = value.slice(indexOfLastSpace + 1, caret);
 
             if (currentWord) {
+              const newSuggestions = await getTransliterateSuggestions(
+                currentWord,
+                language
+              );
+              suggestions = newSuggestions;
               renderSuggestionsList();
 
               const rect = activeElement.getBoundingClientRect();
@@ -265,8 +279,6 @@ function initialiseTransliteration() {
               const newTop =
                 window.scrollY + caretPos.top + rect.top + OPTION_LIST_Y_OFFSET;
               const newLeft = window.scrollX + caretPos.left + rect.left;
-
-              console.log(newLeft, newTop);
 
               topCoordinate = newTop;
               leftCoordinate = newLeft;
