@@ -6,6 +6,12 @@
   "background": {
     "service_worker": "src/js/inject.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["./src/js/content-script.js"]
+    }
+  ],
   "permissions": ["storage", "activeTab", "scripting"],
   "action": {
     "default_popup": "popup.html",

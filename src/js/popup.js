@@ -50,18 +50,7 @@ chrome.storage.sync.get("language", ({ language }) => {
 });
 
 languageDropdown.addEventListener("change", (event) => {
-  // let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  // chrome.scripting.executeScript({
-  //   target: { tabId: tab.id },
-  //   function: initialiseTransliteration,
-  // });
   if (event && event.target && event.target.value) {
     chrome.storage.sync.set({ language: event.target.value });
   }
 });
-
-function initialiseTransliteration() {
-  chrome.storage.sync.get("language", ({ language }) => {
-    // document.body.style.backgroundColor = color;
-  });
-}
