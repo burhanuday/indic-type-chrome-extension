@@ -9,7 +9,8 @@
   "content_scripts": [
     {
       "matches": ["https://*/*", "http://*/*"],
-      "js": ["./src/js/content-script.js"]
+      "js": ["./src/js/content-script.js"],
+      "css": ["./src/styles/suggestions-box.css"]
     }
   ],
   "permissions": ["storage", "activeTab", "scripting"],
