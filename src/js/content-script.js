@@ -223,8 +223,18 @@ const reset = () => {
 
 const handleSelection = (index) => {};
 
-const handleBlur = () => {
-  handleSelection(0);
+const getLastWordFromText = (text, caret) => {
+  // search for the last occurence of the space character from
+  // the cursor
+  const indexOfLastSpace =
+    text.lastIndexOf(" ", caret - 1) < text.lastIndexOf("\n", caret - 1)
+      ? text.lastIndexOf("\n", caret - 1)
+      : text.lastIndexOf(" ", caret - 1);
+
+  matchStart = indexOfLastSpace + 1;
+  matchEnd = caret - 1;
+
+  return value.slice(indexOfLastSpace + 1, caret);
 };
 
 const handleInput = async (event) => {
@@ -232,17 +242,7 @@ const handleInput = async (event) => {
   const caret = getInputSelection(event.target).end;
   const caretPos = getCaretCoordinates(activeElement, caret);
 
-  // search for the last occurence of the space character from
-  // the cursor
-  const indexOfLastSpace =
-    value.lastIndexOf(" ", caret - 1) < value.lastIndexOf("\n", caret - 1)
-      ? value.lastIndexOf("\n", caret - 1)
-      : value.lastIndexOf(" ", caret - 1);
-
-  matchStart = indexOfLastSpace + 1;
-  matchEnd = caret - 1;
-
-  const currentWord = value.slice(indexOfLastSpace + 1, caret);
+  const currentWord = getLastWordFromText(value, caret);
 
   if (currentWord) {
     const newSuggestions = await getTransliterateSuggestions(
@@ -270,7 +270,7 @@ const setActiveElementListener = (activeElement) => {
   activeElement.addEventListener("blur", () => {
     setTimeout(() => {
       reset();
-    }, 200);
+    }, 50);
     activeElement.removeEventListener("input", handleInput);
     activeElement.removeEventListener("blur", this);
   });
@@ -299,7 +299,6 @@ function initialiseTransliteration() {
 
           // TODO: disable for type="password"
 
-          // TODO remove listener on blur
           setActiveElementListener(activeElement);
         } catch (error) {
           console.error("error while fetching focused element", error);
