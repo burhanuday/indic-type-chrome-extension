@@ -217,7 +217,8 @@ const renderSuggestionsList = () => {
   ul.style.top = `${topCoordinate}px`;
   ul.style.position = "absolute";
   ul.style.width = "auto";
-  ul.style.display = suggestions.length ? "block" : "none";
+  ul.style.display =
+    suggestions.length && isExtensionEnabled ? "block" : "none";
 
   ul.innerHTML = "";
 
@@ -259,12 +260,6 @@ const handleSelection = (index) => {
     suggestions[index] +
     " " +
     currentString.substring(matchEnd + 1, currentString.length);
-
-  console.table(
-    suggestions[index],
-    suggestions[index].length,
-    currentString.substring(matchEnd + 1, currentString.length)
-  );
 
   // set the position of the caret (cursor) one character after the
   // the position of the new word
@@ -341,56 +336,83 @@ const handleInput = async (event) => {
   }
 };
 
-const setActiveElementListener = (activeElement) => {
+const removeEventListeners = () => {
+  activeElement.removeEventListener("input", handleInput);
+  activeElement.removeEventListener("keydown", handleKeyDown);
+  activeElement.removeEventListener("blur", this);
+};
+
+const setActiveElementListeners = () => {
+  if (!activeElement) return;
   activeElement.addEventListener("input", handleInput);
   activeElement.addEventListener("keydown", handleKeyDown);
-  activeElement.addEventListener("blur", () => {
-    activeElement.removeEventListener("input", handleInput);
-    activeElement.removeEventListener("keydown", handleKeyDown);
-    activeElement.removeEventListener("blur", this);
-  });
+  activeElement.addEventListener("blur", removeEventListeners);
+};
+
+const onFocusChangeEventListener = () => {
+  // access to document.activeElement may throw an error
+  // @see https://bugs.jquery.com/ticket/13393
+  try {
+    activeElement = document.activeElement;
+
+    if (!activeElement) {
+      activeElement = document.querySelector(":focus");
+    }
+
+    const tagName = activeElement.tagName;
+
+    // only continue if focused elements are input type
+    if (tagName !== "INPUT" && tagName !== "TEXTAREA") return;
+
+    if (activeElement.type === "password") return;
+
+    setActiveElementListeners();
+  } catch (error) {
+    console.error("error while fetching focused element", error);
+  }
 };
 
 function initialiseTransliteration() {
+  chrome.storage.sync.get("language", ({ language: selectedLanguage }) => {
+    language = selectedLanguage;
+  });
+  chrome.storage.sync.get("enabled", ({ enabled }) => {
+    isExtensionEnabled = enabled;
+  });
   renderSuggestionsList();
-  document.addEventListener(
-    "focusin",
-    function () {
-      console.log("reneed");
-      // access to document.activeElement may throw an error
-      // @see https://bugs.jquery.com/ticket/13393
-      try {
-        activeElement = document.activeElement;
-
-        if (!activeElement) {
-          activeElement = document.querySelector(":focus");
-        }
-
-        const tagName = activeElement.tagName;
-
-        // only continue if focused elements are input type
-        if (tagName !== "INPUT" && tagName !== "TEXTAREA") return;
-
-        if (activeElement.type === "password") return;
-
-        setActiveElementListener(activeElement);
-      } catch (error) {
-        console.error("error while fetching focused element", error);
-      }
-    },
-    true
-  );
+  if (isExtensionEnabled) {
+    activeElement = document.activeElement || document.querySelector(":focus");
+    document.addEventListener("focusin", onFocusChangeEventListener, true);
+  }
 }
 
 initialiseTransliteration();
 
+// listen to changes in user preference
 chrome.storage.onChanged.addListener(function (changes, namespace) {
   for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
     switch (key) {
       case "language":
         language = newValue;
+        break;
       case "enabled":
         isExtensionEnabled = newValue;
+        if (newValue === false) {
+          document.removeEventListener(
+            "focusin",
+            onFocusChangeEventListener,
+            true
+          );
+          removeEventListeners();
+        } else {
+          document.addEventListener(
+            "focusin",
+            onFocusChangeEventListener,
+            true
+          );
+          setActiveElementListeners();
+        }
+        renderSuggestionsList();
     }
   }
 });
