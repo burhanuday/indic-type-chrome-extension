@@ -205,6 +205,7 @@ let suggestions = [];
 let activeElement = null;
 let language = null;
 let value = "";
+let isExtensionEnabled = true;
 
 const ul = document.createElement("ul");
 ul.classList.add("t-suggestions-box");
@@ -258,6 +259,12 @@ const handleSelection = (index) => {
     suggestions[index] +
     " " +
     currentString.substring(matchEnd + 1, currentString.length);
+
+  console.table(
+    suggestions[index],
+    suggestions[index].length,
+    currentString.substring(matchEnd + 1, currentString.length)
+  );
 
   // set the position of the caret (cursor) one character after the
   // the position of the new word
@@ -346,38 +353,44 @@ const setActiveElementListener = (activeElement) => {
 
 function initialiseTransliteration() {
   renderSuggestionsList();
+  document.addEventListener(
+    "focusin",
+    function () {
+      console.log("reneed");
+      // access to document.activeElement may throw an error
+      // @see https://bugs.jquery.com/ticket/13393
+      try {
+        activeElement = document.activeElement;
 
-  // TODO find a way to renew event listener when language changes
-  chrome.storage.sync.get("language", ({ language: selectedLanguage }) => {
-    language = selectedLanguage;
-    document.addEventListener(
-      "focusin",
-      function () {
-        // access to document.activeElement may throw an error
-        // @see https://bugs.jquery.com/ticket/13393
-        try {
-          activeElement = document.activeElement;
-          console.log(activeElement.type);
-
-          if (!activeElement) {
-            activeElement = document.querySelector(":focus");
-          }
-
-          const tagName = activeElement.tagName;
-
-          // only continue if focused elements are input type
-          if (tagName !== "INPUT" && tagName !== "TEXTAREA") return;
-
-          if (activeElement.type === "password") return;
-
-          setActiveElementListener(activeElement);
-        } catch (error) {
-          console.error("error while fetching focused element", error);
+        if (!activeElement) {
+          activeElement = document.querySelector(":focus");
         }
-      },
-      true
-    );
-  });
+
+        const tagName = activeElement.tagName;
+
+        // only continue if focused elements are input type
+        if (tagName !== "INPUT" && tagName !== "TEXTAREA") return;
+
+        if (activeElement.type === "password") return;
+
+        setActiveElementListener(activeElement);
+      } catch (error) {
+        console.error("error while fetching focused element", error);
+      }
+    },
+    true
+  );
 }
 
 initialiseTransliteration();
+
+chrome.storage.onChanged.addListener(function (changes, namespace) {
+  for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+    switch (key) {
+      case "language":
+        language = newValue;
+      case "enabled":
+        isExtensionEnabled = newValue;
+    }
+  }
+});
