@@ -382,6 +382,9 @@ function initialiseTransliteration() {
   renderSuggestionsList();
   if (isExtensionEnabled) {
     activeElement = document.activeElement || document.querySelector(":focus");
+    if (activeElement) {
+      onFocusChangeEventListener();
+    }
     document.addEventListener("focusin", onFocusChangeEventListener, true);
   }
 }
