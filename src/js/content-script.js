@@ -190,7 +190,7 @@ const KEY_ENTER = 14;
 const KEY_TAB = 9;
 const KEY_SPACE = 32;
 
-const triggerKeys = [KEY_RETURN, KEY_TAB, KEY_ENTER, KEY_SPACE];
+const triggerKeys = [KEY_RETURN, KEY_ENTER, KEY_SPACE];
 
 const OPTION_LIST_Y_OFFSET = 20;
 const OPTION_LIST_MIN_WIDTH = 100;
@@ -285,6 +285,7 @@ const handleKeyDown = (event) => {
   const helperVisible = suggestions.length > 0;
 
   if (helperVisible) {
+    event.stopPropagation();
     if (triggerKeys.includes(event.keyCode)) {
       handleSelection(selectionIndex);
     } else {
@@ -300,8 +301,8 @@ const handleKeyDown = (event) => {
           selectionIndex = (selectionIndex + 1) % suggestions.length;
           break;
       }
-      renderSuggestionsList();
     }
+    renderSuggestionsList();
   }
 };
 
