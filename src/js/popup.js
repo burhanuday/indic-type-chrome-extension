@@ -36,7 +36,8 @@ const supportedLanguages = [
   { label: "Vietnamese", value: "vi" },
 ];
 
-let languageDropdown = document.getElementById("t-language-selector");
+const languageDropdown = document.getElementById("t-language-selector");
+const enabledCheckbox = document.getElementById("t-enabled");
 
 languageDropdown.innerHTML = `${supportedLanguages.map(
   (language) => `<option value="${language.value}">${language.label}</option>`
@@ -49,8 +50,17 @@ chrome.storage.sync.get("language", ({ language }) => {
   languageDropdown.value = language;
 });
 
+chrome.storage.sync.get("enabled", ({ enabled }) => {
+  enabledCheckbox.checked = enabled;
+});
+
 languageDropdown.addEventListener("change", (event) => {
   if (event && event.target && event.target.value) {
     chrome.storage.sync.set({ language: event.target.value });
   }
+});
+
+enabledCheckbox.addEventListener("change", function (event) {
+  console.log(event);
+  chrome.storage.sync.set({ enabled: event.target.checked });
 });
