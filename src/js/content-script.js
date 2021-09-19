@@ -357,6 +357,7 @@ function initialiseTransliteration() {
         // @see https://bugs.jquery.com/ticket/13393
         try {
           activeElement = document.activeElement;
+          console.log(activeElement.type);
 
           if (!activeElement) {
             activeElement = document.querySelector(":focus");
@@ -367,7 +368,7 @@ function initialiseTransliteration() {
           // only continue if focused elements are input type
           if (tagName !== "INPUT" && tagName !== "TEXTAREA") return;
 
-          // TODO: disable for type="password"
+          if (activeElement.type === "password") return;
 
           setActiveElementListener(activeElement);
         } catch (error) {
