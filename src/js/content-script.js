@@ -378,15 +378,16 @@ function initialiseTransliteration() {
   });
   chrome.storage.sync.get("enabled", ({ enabled }) => {
     isExtensionEnabled = enabled;
+    if (enabled) {
+      activeElement =
+        document.activeElement || document.querySelector(":focus");
+      if (activeElement) {
+        onFocusChangeEventListener();
+      }
+      document.addEventListener("focusin", onFocusChangeEventListener, true);
+    }
   });
   renderSuggestionsList();
-  if (isExtensionEnabled) {
-    activeElement = document.activeElement || document.querySelector(":focus");
-    if (activeElement) {
-      onFocusChangeEventListener();
-    }
-    document.addEventListener("focusin", onFocusChangeEventListener, true);
-  }
 }
 
 initialiseTransliteration();
