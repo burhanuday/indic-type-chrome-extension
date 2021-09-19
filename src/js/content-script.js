@@ -336,11 +336,11 @@ const handleInput = async (event) => {
   }
 };
 
-const removeEventListeners = () => {
+function removeEventListeners() {
   activeElement.removeEventListener("input", handleInput);
   activeElement.removeEventListener("keydown", handleKeyDown);
   activeElement.removeEventListener("blur", this);
-};
+}
 
 const setActiveElementListeners = () => {
   if (!activeElement) return;
