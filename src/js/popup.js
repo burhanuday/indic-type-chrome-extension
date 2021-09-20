@@ -61,6 +61,5 @@ languageDropdown.addEventListener("change", (event) => {
 });
 
 enabledCheckbox.addEventListener("change", function (event) {
-  console.log(event);
   chrome.storage.sync.set({ enabled: event.target.checked });
 });
