@@ -1,7 +1,7 @@
 {
   "name": "Transliterate Typing",
   "description": "A chrome plugin to type in any language!",
-  "version": "1.0",
+  "version": "0.1",
   "manifest_version": 3,
   "background": {
     "service_worker": "src/js/inject.js"
