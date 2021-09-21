@@ -1,7 +1,7 @@
 {
   "name": "Indic Type",
   "description": "A chrome plugin to type in any language!",
-  "version": "0.1",
+  "version": "0.1.1",
   "manifest_version": 3,
   "background": {
     "service_worker": "src/js/inject.js"
@@ -17,16 +17,16 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "src/assets/images/get_started16.png",
-      "32": "src/assets/images/get_started32.png",
-      "48": "src/assets/images/get_started48.png",
-      "128": "src/assets/images/get_started128.png"
+      "16": "src/assets/images/logo_16x16.png",
+      "32": "src/assets/images/logo_32x32.png",
+      "48": "src/assets/images/logo_48x48.png",
+      "128": "src/assets/images/logo_144x144.png"
     }
   },
   "icons": {
-    "16": "src/assets/images/get_started16.png",
-    "32": "src/assets/images/get_started32.png",
-    "48": "src/assets/images/get_started48.png",
-    "128": "src/assets/images/get_started128.png"
+    "16": "src/assets/images/logo_16x16.png",
+    "32": "src/assets/images/logo_32x32.png",
+    "48": "src/assets/images/logo_48x48.png",
+    "128": "src/assets/images/logo_144x144.png"
   }
 }
