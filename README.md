@@ -12,7 +12,7 @@ Amharic, Arabic, Bangla, Belarusian, Bulgarian, Chinese (Hong Kong), Chinese (Si
 
 ### Contributing
 
-Checkout the open issues to contribute to the project
+Checkout the open issues to contribute to the project. Checkout CONTRIBUTING.md for development setup
 
 ### License
 
