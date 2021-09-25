@@ -1,7 +1,7 @@
 {
   "name": "Indic Type",
   "description": "A chrome plugin to type in any language!",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "manifest_version": 3,
   "background": {
     "service_worker": "src/js/inject.js"
@@ -13,7 +13,7 @@
       "css": ["./src/styles/suggestions-box.css"]
     }
   ],
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "activeTab"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
