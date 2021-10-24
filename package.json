@@ -1,0 +1,25 @@
+{
+  "name": "indic-type-chrome-extension",
+  "version": "0.1.2",
+  "description": "Chrome extension to type in 30+ languages using a standard keyboard",
+  "repository": "git@github.com:burhanuday/indic-type-chrome-extension.git",
+  "author": "Burhanuddin Udaipurwala <udaipurwalaburhanuddin@gmail.com>",
+  "license": "MIT",
+  "targets": {
+    "webext-dev": {
+      "sourceMap": {
+        "inline": true,
+        "inlineSources": true
+      }
+    },
+    "webext-prod": {}
+  },
+  "scripts": {
+    "start": "parcel src/manifest.json --host localhost --target webext-dev --config @parcel/config-webextension",
+    "build": "parcel build src/manifest.json --target webext-prod --config @parcel/config-webextension"
+  },
+  "devDependencies": {
+    "@parcel/config-webextension": "^2.0.0",
+    "parcel": "^2.0.0"
+  }
+}
