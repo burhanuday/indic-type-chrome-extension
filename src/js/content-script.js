@@ -270,7 +270,7 @@ const handleSelection = (index) => {
 };
 
 const getLastWordFromText = (text, caret) => {
-  // search for the last occurence of the space character from
+  // search for the last occurrence of the space character from
   // the cursor
   const indexOfLastSpace =
     text.lastIndexOf(" ", caret - 1) < text.lastIndexOf("\n", caret - 1)
@@ -290,6 +290,7 @@ const handleKeyDown = (event) => {
     event.stopPropagation();
     if (triggerKeys.includes(event.keyCode)) {
       handleSelection(selectionIndex);
+      event.preventDefault();
     } else {
       switch (event.keyCode) {
         case KEY_ESCAPE:
@@ -372,7 +373,7 @@ const onFocusChangeEventListener = () => {
   }
 };
 
-function initialiseTransliteration() {
+function initializeTransliteration() {
   chrome.storage.sync.get("language", ({ language: selectedLanguage }) => {
     language = selectedLanguage;
   });
@@ -390,7 +391,7 @@ function initialiseTransliteration() {
   renderSuggestionsList();
 }
 
-initialiseTransliteration();
+initializeTransliteration();
 
 // listen to changes in user preference
 chrome.storage.onChanged.addListener(function (changes, namespace) {
